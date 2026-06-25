@@ -66,13 +66,14 @@ if isa(baseDir,'char')
         numSlices   = size(dir0,1);
         if numSlices==1
             % Single image
-            disp('This function processes multiple slices, for single images use segmentNucleiHelaEM_3D');
+            disp('This function processes multiple slices, for single images use segmentNucleiHelaEM');
             return
         else
             % multiple images
             % Read info of first slice to format the 3D data
             infoSlices = imfinfo(strcat(baseDir,dir0(1).name));
-            Hela_3D(infoSlices.Height,infoSlices.Width,numSlices)=0;
+            %Hela_3D(infoSlices.Height,infoSlices.Width,numSlices)=0;
+            Hela_3D = zeros(infoSlices.Height,infoSlices.Width,'uint8');
             gaussFilt =  fspecial('Gaussian',3,1);
             for k=1:numSlices
                 disp(strcat('Reading slice number',32,num2str(k)))
@@ -127,9 +128,11 @@ end
 
 %% Process over the whole cell
 % Define the volumes
-[rows,cols,numSlices]                   = size(Hela_3D);
-Hela_nuclei(rows,cols,numSlices)        = 0;
-Hela_background(rows,cols,numSlices)    = 0;
+%[rows,cols,numSlices]                   = size(Hela_3D);
+%Hela_nuclei(rows,cols,numSlices)        = 0;
+%Hela_background(rows,cols,numSlices)    = 0;
+Hela_background = false(infoSlices.Height, infoSlices.Width, numSlices);
+Hela_nuclei = false(infoSlices.Height, infoSlices.Width, numSlices);
 % Start with the central slice, this assumes the cell is centrally located,
 % this may not be the case and may need to be reconsidered
 
