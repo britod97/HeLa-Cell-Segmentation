@@ -1,4 +1,4 @@
-baseDir = 'E:\HeLa\Data\CIL50051\Cropped_Tiffs_2\';
+baseDir = 'D:\GitHub Repos\HeLa_Cell_Data\Data\Cropped_Tiffs_2';
 dir0 = dir(fullfile(baseDir, '*.tif*'));
 numSlices = numel(dir0);
 
@@ -19,9 +19,18 @@ Hela_nuclei = medfilt3(Hela_nuclei, [3 3 13]);
 % Save result
 save('nuclei_segmentation.mat', 'Hela_nuclei', '-v7.3');
 %%
+Hela_nuclei = load("nuclei_segmentation.mat")
+arr = Hela_nuclei.Hela_nuclei;
+%%
+factor = 4;  % 2000 -> 500 in XY
+arr_small = arr(1:factor:end, 1:factor:end, :);
+
+% Smooth slightly to get a nicer surface (optional but helps)
+arr_small = smooth3(double(arr_small), 'gaussian', 3);
+
 figure
-p = patch(isosurface(arr, 0.5));
-isonormals(arr, p)
+p = patch(isosurface(arr_small, 0.5));
+%isonormals(arr, p)
 set(p, 'FaceColor', 'red', 'EdgeColor', 'none')
 
 daspect([1 1 1])
@@ -30,6 +39,3 @@ axis tight
 camlight
 lighting gouraud
 title('3D visualization of nuclei mask')
-%%
-Hela_nuclei = load("E:\HeLa\HeLa-Cell-Segmentation-master\Code\nuclei_segmentation.mat")
-arr = Hela_nuclei.Hela_nuclei;
