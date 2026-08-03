@@ -17,12 +17,12 @@ end
 Hela_nuclei = medfilt3(Hela_nuclei, [3 3 13]);
 
 % Save result
-save('nuclei_segmentation.mat', 'Hela_nuclei', '-v7.3');
+save('nuclei_segmentation_2.mat', 'Hela_nuclei', '-v7.3');
 %%
-Hela_nuclei = load("nuclei_segmentation.mat")
+Hela_nuclei = load("nuclei_segmentation_2.mat")
 arr = Hela_nuclei.Hela_nuclei;
 %%
-factor = 4;  % 2000 -> 500 in XY
+factor = 1;  % 2000 -> 500 in XY
 arr_small = arr(1:factor:end, 1:factor:end, :);
 
 % Smooth slightly to get a nicer surface (optional but helps)
