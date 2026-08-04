@@ -1,4 +1,4 @@
-baseDir = 'D:\GitHub Repos\HeLa_Cell_Data\Data\Cropped_Tiffs_2';
+baseDir = 'D:\GitHub Repos\HeLa_Cell_Data\Data\Cropped_Tiffs_Cefas';
 dir0 = dir(fullfile(baseDir, '*.tif*'));
 numSlices = numel(dir0);
 
@@ -8,7 +8,7 @@ Hela_nuclei = false(info.Height, info.Width, numSlices);
 
 for k = 1:numSlices
     img = double(imread(fullfile(baseDir, dir0(k).name)));
-    mask = segmentNucleiHelaEM(img, [], 4);
+    mask = segmentNucleiHelaEM(img, [], 3);
     Hela_nuclei(:,:,k) = logical(mask);
     fprintf('Processed slice %d/%d\n', k, numSlices);
 end
@@ -17,25 +17,28 @@ end
 Hela_nuclei = medfilt3(Hela_nuclei, [3 3 13]);
 
 % Save result
-save('nuclei_segmentation_2.mat', 'Hela_nuclei', '-v7.3');
+save('nuclei_segmentation_cefas.mat', 'Hela_nuclei', '-v7.3');
 %%
-Hela_nuclei = load("nuclei_segmentation_2.mat")
+Hela_nuclei = load("nuclei_segmentation_cefas.mat")
 arr = Hela_nuclei.Hela_nuclei;
+
+volshow(arr)
 %%
-factor = 1;  % 2000 -> 500 in XY
-arr_small = arr(1:factor:end, 1:factor:end, :);
-
-% Smooth slightly to get a nicer surface (optional but helps)
-arr_small = smooth3(double(arr_small), 'gaussian', 3);
-
-figure
-p = patch(isosurface(arr_small, 0.5));
-%isonormals(arr, p)
-set(p, 'FaceColor', 'red', 'EdgeColor', 'none')
-
-daspect([1 1 1])
-view(3)
-axis tight
-camlight
-lighting gouraud
-title('3D visualization of nuclei mask')
+% factor = 1;  % 2000 -> 500 in XY
+% arr_small = arr(1:factor:end, 1:factor:end, :);
+% 
+% % Smooth slightly to get a nicer surface (optional but helps)
+% % arr_small = smooth3(double(arr_small), 'gaussian', 3);
+% 
+% volshow(arr)
+% % figure
+% % p = patch(isosurface(arr_small, 0.5));
+% % %isonormals(arr, p)
+% % set(p, 'FaceColor', 'red', 'EdgeColor', 'none')
+% 
+% daspect([1 1 1])
+% view(3)
+% axis tight
+% camlight
+% lighting gouraud
+% title('3D visualization of nuclei mask')

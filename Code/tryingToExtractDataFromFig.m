@@ -83,7 +83,7 @@ BW_1 = VOXELISE(gridX,gridY,gridZ,meshFV,'xyz');
 save("D:\GitHub Repos\HeLa_Cell_Data\CIL50051\Matlab\ChlamydiaCell1.mat", "BW_1")
 
 %%
-BW = logical(BW_1);
+
 outputDir = "D:\GitHub Repos\HeLa_Cell_Data\CIL50051\Segmented Tiffs";
 % Create output directory if it doesn't exist
 if ~exist(outputDir, 'dir')
@@ -92,5 +92,5 @@ end
 % Save the slices of the binary volume as Tif files
 for k = 1:size(BW_1,3)
     filename = fullfile(outputDir, sprintf('slice_%03d.tif', k));
-    imwrite(uint8(BW(:,:,k))*255, filename);
+    imwrite(uint8(BW_1(:,:,k))*255, filename);
 end

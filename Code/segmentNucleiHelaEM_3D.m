@@ -154,7 +154,8 @@ for currentSlice=centralSlice+1:numSlices
     % only process the current slice if the previous contains results
     if (sum(sum(Hela_nuclei(:,:,currentSlice-1))))>0
         % Perform segmentation and save in the 3D Matrix       
-        Hela_nuclei(:,:,currentSlice)       = segmentNucleiHelaEM(    Hela_3D(:,:,currentSlice),Hela_nuclei(:,:,currentSlice-1),cannyStdValue,Hela_background(:,:,currentSlice));
+        % Hela_nuclei(:,:,currentSlice)       = segmentNucleiHelaEM(    Hela_3D(:,:,currentSlice),Hela_nuclei(:,:,currentSlice-1),cannyStdValue,Hela_background(:,:,currentSlice));
+        Hela_nuclei(:,:,currentSlice)       = segmentNucleiHelaEM(    Hela_3D(:,:,currentSlice),Hela_nuclei(:,:,currentSlice-1),cannyStdValue);
     else
         disp('no nuclei detected')
     end
@@ -166,10 +167,11 @@ for currentSlice=centralSlice:-1:1
     % Iterate from the central slice DOWN, display the current position
     disp(strcat('Segmenting slice number',32,num2str(currentSlice)))
     % Perform segmentation and save in the 3D Matrix
-    Hela_background(:,:,currentSlice)   = segmentBackgroundHelaEM(Hela_3D(:,:,currentSlice));
+    % Hela_background(:,:,currentSlice)   = segmentBackgroundHelaEM(Hela_3D(:,:,currentSlice));
     % only process the current slice if the previous contains results
     if (sum(sum(Hela_nuclei(:,:,currentSlice+1))))>0
-        Hela_nuclei(:,:,currentSlice)       = segmentNucleiHelaEM(Hela_3D(:,:,currentSlice),Hela_nuclei(:,:,currentSlice+1),cannyStdValue,Hela_background(:,:,currentSlice));
+        % Hela_nuclei(:,:,currentSlice)       = segmentNucleiHelaEM(Hela_3D(:,:,currentSlice),Hela_nuclei(:,:,currentSlice+1),cannyStdValue,Hela_background(:,:,currentSlice));
+        Hela_nuclei(:,:,currentSlice)       = segmentNucleiHelaEM(Hela_3D(:,:,currentSlice),Hela_nuclei(:,:,currentSlice+1),cannyStdValue);
     else
         disp('no nuclei detected')
     end
@@ -177,17 +179,17 @@ end
 % This will no longer be needed, so delete to avoid out of memory problems
 clear Hela_3D
 %% overlap between background and nucleus, this should not happen.
-if sum(sum(sum(Hela_background.*Hela_nuclei)))>0
-    % dilate the background and remove from nuclei
-    try
-        Hela_nuclei                     = Hela_nuclei.*(1-imdilate(Hela_background,ones(39,39,23))) ;
-    catch
-        for counterS = 1:numSlices
-            Hela_nuclei(:,:,counterS)   = Hela_nuclei(:,:,counterS).*(1-imdilate(Hela_background(:,:,counterS),ones(39,39,1))) ;
-        end
-    end
-    
-end
+% if sum(sum(sum(Hela_background.*Hela_nuclei)))>0
+%     % dilate the background and remove from nuclei
+%     try
+%         Hela_nuclei                     = Hela_nuclei.*(1-imdilate(Hela_background,ones(39,39,23))) ;
+%     catch
+%         for counterS = 1:numSlices
+%             Hela_nuclei(:,:,counterS)   = Hela_nuclei(:,:,counterS).*(1-imdilate(Hela_background(:,:,counterS),ones(39,39,1))) ;
+%         end
+%     end
+% 
+% end
 
 %% Interpolate between slices
 % A simple post-processing step is to interpolate between slices/
@@ -214,6 +216,17 @@ end
 clear Hela_nuclei3;
 % The 3D Median Filter may be better than the previous interpolation
 Hela_nuclei                     = medfilt3(Hela_nuclei,[3 3 13]);
+
+% Keep largest component only
+Hela_nuclei = logical(Hela_nuclei);              % Make sure it's logical
+CC = bwconncomp(Hela_nuclei, 26);       % 26-connectivity for 3D
+
+numPixels = cellfun(@numel, CC.PixelIdxList);
+[~, idx] = max(numPixels);
+
+Hela_nuclei_largest = false(size(Hela_nuclei));
+Hela_nuclei_largest(CC.PixelIdxList{idx}) = true;
+Hela_nuclei = Hela_nuclei_largest;
 %%
 % Hela_background3(rows,cols,numSlices)   = 0;
 % % interpolation between slices
@@ -243,3 +256,4 @@ Hela_nuclei                     = medfilt3(Hela_nuclei,[3 3 13]);
 % space in disk but since nuclei is logical, keep consistent
 Hela_background                     = medfilt3(Hela_background,[3 3 13]);
 Hela_background = (Hela_background>0);
+

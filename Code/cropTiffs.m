@@ -1,4 +1,4 @@
-function cropTiffs(tiffdir, x, y, w, h)
+function cropTiffs(tiffdir, x, y, z_lo, z_hi, w, h, outdir)
 
     % Get all tif/tiff files
     files = dir(fullfile(tiffdir, '*.tif'));
@@ -9,14 +9,14 @@ function cropTiffs(tiffdir, x, y, w, h)
     end
 
     % Create output directory
-    outdir = fullfile(tiffdir, 'cropped');
+    % outdir = fullfile(tiffdir, 'cropped');
     if ~exist(outdir, 'dir')
         mkdir(outdir);
     end
 
     % Crop each image
-    for i = 1:length(files)
-
+    for i = z_lo:z_hi
+        
         infile = fullfile(tiffdir, files(i).name);
 
         % Read image
