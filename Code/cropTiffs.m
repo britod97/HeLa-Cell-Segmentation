@@ -23,7 +23,7 @@ function cropTiffs(tiffdir, x, y, z_lo, z_hi, w, h, outdir)
         I = imread(infile);
 
         % Crop
-        Ic = imcrop(I, [x y w-1 h-1]);
+        Ic = histeq(imcrop(I, [x y w-1 h-1]));
 
         % Save
         outfile = fullfile(outdir, files(i).name);
