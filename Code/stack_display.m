@@ -1,4 +1,7 @@
-baseDir = 'D:\GitHub Repos\HeLa_Cell_Data\Data\Cropped_Tiffs_Cefas';
+% Load cell membrane
+membrane = load("D:\GitHub Repos\HeLa_Cell_Data\CIL50051\Matlab\ROI_01_Cell.mat");
+
+baseDir = 'D:\GitHub Repos\HeLa_Cell_Data\CIL50051\Bigger_Cropped_Tiffs';
 dir0 = dir(fullfile(baseDir, '*.tif*'));
 numSlices = numel(dir0);
 
@@ -6,23 +9,30 @@ numSlices = numel(dir0);
 info = imfinfo(fullfile(baseDir, dir0(1).name));
 Hela_nuclei = false(info.Height, info.Width, numSlices);
 
+% se = strel("disk",5);
+
 for k = 1:numSlices
     img = double(imread(fullfile(baseDir, dir0(k).name)));
-    mask = segmentNucleiHelaEM(img, [], 3);
-    Hela_nuclei(:,:,k) = logical(mask);
+    % membraneSlice = imdilate(membrane.mask(:,:,k), se);
+    membraneSlice = membrane.mask(:,:,k);
+    % imgMasked = img.*membraneSlice;
+    % segmentation = segmentNucleiHelaEM(imgMasked, [], 4);
+    segmentation = segmentNucleiHelaEM(img, [], 5);
+    Hela_nuclei(:,:,k) = logical(segmentation);
     fprintf('Processed slice %d/%d\n', k, numSlices);
 end
 
 % Apply the same 3D median filter the original code uses
 Hela_nuclei = medfilt3(Hela_nuclei, [3 3 13]);
 
+volshow(Hela_nuclei);
 % Save result
-save('nuclei_segmentation_cefas.mat', 'Hela_nuclei', '-v7.3');
+% save('ROI_01_Nuclei_masked.mat', 'Hela_nuclei', '-v7.3');
 %%
-Hela_nuclei = load("nuclei_segmentation_cefas.mat")
-arr = Hela_nuclei.Hela_nuclei;
-
-volshow(arr)
+% Hela_nuclei = load("nuclei_segmentation_cefas.mat")
+% arr = Hela_nuclei.Hela_nuclei;
+% 
+% volshow(arr)
 %%
 % factor = 1;  % 2000 -> 500 in XY
 % arr_small = arr(1:factor:end, 1:factor:end, :);
