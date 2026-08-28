@@ -50,6 +50,8 @@ def load_mito_data(mitochondria_dir, nucleus_data_path):
     # # Append nucleus properties to all_mito_data
     all_mito_data = all_mito_data.merge(nucleus_data, suffixes=("", "_nucleus") ,on='ROI')
     all_mito_data = all_mito_data.drop(['distance_to_current_mito'], axis=1, errors='ignore')
+    
+    return all_mito_data, nucleus_data
 
 
 ################################################################
@@ -377,7 +379,9 @@ def append_angle_relative_to_nucleus_surface(df, nucleus_df, ROI_name, ZARR_DIR,
     L = len(df)
     for idx, row in tqdm(df.iterrows(), total=L):
         mitochondria_centroid = np.array([row['centroid_x'], row['centroid_y'], row['centroid_z']])
-        P, d = compute_closest_point_on_nucleus(mitochondria_centroid, nucleus_centroid, nucleus_da, SPACING=[10,10,50])
+        P, d = compute_closest_point_on_nucleus(mitochondria_centroid,
+                                                nucleus_centroid, nucleus_da,
+                                                SPACING=SPACING)
         v1 = np.array([mitochondria_centroid[0] - P[0], mitochondria_centroid[1] - P[1], mitochondria_centroid[2] - P[2]])
         v2 = np.array([row['orientation_x'], row['orientation_y'], row['orientation_z']])
         angle = compute_angle_between_vectors(v1, v2)

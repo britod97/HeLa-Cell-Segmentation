@@ -17,7 +17,7 @@ import pandas as pd
 
 
 
-SPACING = np.array([8.6,8.6,60])
+SPACING = np.array([3.6, 3.6, 60])
 chunk_size = (64,64,255)
 
 ZARR_DIR = Path(r"E:\HeLa\Data\CIL50051\Zarr")
