@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug 27 14:28:06 2026
+Created on Fri Aug 28 13:30:06 2026
 
-@author: brito
+@author: adhh334
 """
 
 import os
@@ -11,89 +11,129 @@ workdir = Path(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
 os.chdir(workdir)
 
 import numpy as np
-import dask.array as da
-import hela_utils
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from skimage.measure import marching_cubes
+from mpl_toolkits.mplot3d import Axes3D
+import dask.array as da
+from tqdm import tqdm
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from matplotlib import colors
+import scipy.io
+from matplotlib.markers import MarkerStyle
+from matplotlib.ticker import FormatStrFormatter
+
+def export_legend(legend, filename="legend.pdf", expand=[-5,-5,5,5]):
+    fig  = legend.figure
+    fig.canvas.draw()
+    bbox  = legend.get_window_extent()
+    bbox = bbox.from_extents(*(bbox.extents + np.array(expand)))
+    bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
+    fig.savefig(filename, dpi="figure", bbox_inches=bbox)
 
 
-
-SPACING = np.array([8.6,8.6,60])
-chunk_size = (64,64,255)
 
 ZARR_DIR = Path(r"E:\HeLa\Data\CIL50051\Zarr")
-MITO_DIR = Path(r"E:\HeLa\Data\CIL50051\GeneratedData\mitochondria_props_isotropic")
-NUCLEUS_DIR = Path(r"E:\HeLa\Data\CIL50051\GeneratedData\nucleus_props_isotropic")
-os.makedirs(MITO_DIR, exist_ok=True)
-os.makedirs(NUCLEUS_DIR, exist_ok=True)
+
+# Read Nucleus and Mitochondria data
+data_dir = Path(r'E:\HeLa\Data\CIL50051\GeneratedData')
+mitochondria_dir = Path(f'{data_dir}/mitochondria_props_isotropic')
 
 ROIs = np.unique(['_'.join(ROI.split('.')[0].split('_')[:-1])
         for ROI in os.listdir(ZARR_DIR)
         if ROI.endswith('.zarr')])
 
+nucleus_data = pd.read_csv(f'{data_dir}/nucleus_props_isotropic/nucleus_properties.csv')
+mito_data_list = []
+for ROI_name in ROIs:
+    mito_data = pd.read_csv(f'{mitochondria_dir}/{ROI_name}_properties.csv')
+    mito_data['ROI'] = ROI_name
+    mito_data_list.append(mito_data)
+
+all_mito_data = pd.concat(mito_data_list)
+
+# Append nucleus properties to all_mito_data
+all_mito_data = all_mito_data.merge(nucleus_data, suffixes=("", "_nucleus") ,on='ROI')
+
+
+all_mito_data = all_mito_data.drop(['distance_to_current_mito'], axis=1, errors='ignore')
+
 
 ###############################################################################
-nucleus_results = []
-k=0
-for ROI_name in ROIs:
-    print(f'{k+1}/{len(ROIs)}')
-    k+=1
-    print(f'ROI: {ROI_name}')
-    nucleus = da.from_zarr(f"{ZARR_DIR}/{ROI_name}_Nuclei.zarr").compute()
-    nucleus = nucleus.astype('uint8')
-    mito_labels = hela_utils.compute_labels(ZARR_DIR, ROI_name,
-                                            chunk_size=chunk_size,
-                                            SPACING=SPACING,
-                                            )
+# Orientation of mitochondria with respect to the CENTROID by THRESHOLDS
 
-    nucleus_props = hela_utils.compute_nucleus_properties(nucleus, ROI_name,
-                                                          SPACING=SPACING
-                                                          )
-
-    mito_df = hela_utils.compute_mitochondria_properties(mito_labels,
-                                                         SPACING=SPACING
-                                                         )
-
-    mito_df.to_csv(f"{MITO_DIR}/{ROI_name}_properties.csv", index=False)
-
-    nucleus_results.append(nucleus_props)
+n_bins = 9
+normalised_heights = True
+bar_width = 1
 
 
-nucleus_df = pd.DataFrame(nucleus_results)
-nucleus_df.to_csv(f"{NUCLEUS_DIR}/nucleus_properties.csv", index=False)
+distance_types = ['centroid_distance', 'surface_distance']
+angle_types = ['centroid_angle', 'surface_angle']
 
-###############################################################################
-nucleus_df = pd.read_csv(f"{NUCLEUS_DIR}/nucleus_properties.csv")
-
-for ROI_name in ROIs:
-    print(ROI_name)
-    df = pd.read_csv(f"{MITO_DIR}/{ROI_name}_properties.csv")
-
-    # Append all features
-    df = hela_utils.append_angle_relative_to_nucleus_centroid(df, nucleus_df, ROI_name)
-    # print("Centroid angle done.")
-    df = hela_utils.append_angle_relative_to_nucleus_surface(df, nucleus_df, ROI_name,
-                                                             ZARR_DIR,
-                                                             chunk_size=chunk_size,
-                                                             SPACING=SPACING)
-    # print("Surface angle done.")
-    df = hela_utils.append_spherical_coordinates(df, nucleus_df, ROI_name)
-    print("Spherical coordinates.")
+for d_type in distance_types:
+    for angle in angle_types:
+        distances = all_mito_data['centroid_distance']
+        figure_dir = Path(f'E:\HeLa\Figures/ROSE_isotropic/{angle}/by_{d_type}')
+        os.makedirs(figure_dir, exist_ok=True)
     
-###############################################################################
-nucleus_df = pd.read_csv(f"{NUCLEUS_DIR}/nucleus_properties.csv")
-
-for idx, row in nucleus_df.iterrows():
-    df = pd.read_csv(f"{MITO_DIR}/{row['ROI']}_properties.csv")
-    dic = hela_utils.compute_mito_cloud_properties(df, row)
-    for key, value in dic.items():
-        nucleus_df.at[idx, key] = value
-
-nucleus_df.to_csv(f"{NUCLEUS_DIR}/nucleus_properties.csv", index=False)
-
-# ###############################################################################
-for ROI_name in ROIs:
-    df = hela_utils.append_PCA_distribution(df, nucleus_df, ROI_name)
-    print("Global direction")
-    df = hela_utils.append_angle_relative_to_global_directions(df, nucleus_df, ROI_name)
+        P = [25, 50, 100]
+        percentiles = np.percentile(distances, P)
+        k=0
+        for p in percentiles:
+            fig = plt.figure(figsize=(10,10))
+            mito_data = all_mito_data[distances <= p]
+            hist = np.histogram(mito_data[angle], bins=n_bins, range=(0, np.pi))
     
-    df.to_csv(f"{MITO_DIR}/{ROI_name}_properties.csv", index=False)
+            radii = hist[0]
+            if normalised_heights:
+                radii = radii/np.sum(radii)
+    
+            theta = [(hist[1][k]+hist[1][k+1])/2 for k in range(len(hist[1])-1)]
+            width = bar_width*(np.pi/n_bins)
+    
+            # Coloring
+            norm = colors.Normalize(vmin=0, vmax=0.4)
+            cmap = plt.cm.jet
+            C = cmap(norm(radii))
+    
+            # Plotting
+            ax = plt.subplot(projection='polar')
+            chart = ax.bar(theta, radii, width=width, bottom=0.0,
+               color=C, alpha=1, edgecolor='k', zorder=10, lw=3)
+    
+    
+            ax.set_title(f'{angle} of mitos with {d_type} <= {round(p,2)}')
+            ax.set_yticks([0, 0.2, 0.4])
+            ax.set_ylim(0, 0.4)
+            ax.set_thetalim(0, np.pi)
+            ax.set_xticks([0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi])
+            ax.tick_params(axis='y', labelsize=36, pad=10)
+            ax.tick_params(axis='x', labelsize=42, pad=30)
+    
+            ax.grid('both', lw=3, zorder=-10, alpha=0.8)
+            for spine in ax.spines.values():
+                spine.set_linewidth(3)
+            plt.savefig(f'{figure_dir}/{d_type}_{P[k]}.pdf')
+            plt.savefig(f'{figure_dir}/{d_type}_{P[k]}.png', dpi=300, bbox_inches='tight', transparent=True)
+    
+            # --- Separate colorbar export ---
+            fig_cb, ax_cb = plt.subplots(figsize=(1, 6))  # (width, height)
+            sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+            sm.set_array([])
+    
+            cbar = plt.colorbar(sm, cax=ax_cb)
+            cbar.set_label('Normalised Frequency', rotation=270, labelpad=15)
+    
+            # Save only the colorbar
+            # fig_cb.savefig(f'{figure_dir}/colorbar.pdf', bbox_inches='tight')
+            # fig_cb.savefig(f'{figure_dir}/colorbar.png', dpi=1200, bbox_inches='tight', transparent=True)
+            plt.close(fig_cb)
+    
+            k += 1
+
+
+###############################################################################
+# Morphology comparisons
+
+

@@ -18,6 +18,40 @@ from scipy import ndimage
 from tqdm import tqdm
 from scipy.ndimage import distance_transform_edt
 
+def dask_bbox(dask_arr, pad=2):
+    """Find bounding box of nonzero voxels without materializing the full array."""
+    nz = dask_arr > 0
+    axes = list(range(dask_arr.ndim))
+    bbox = []
+    for ax in axes:
+        other_axes = tuple(a for a in axes if a != ax)
+        proj = nz.any(axis=other_axes).compute()  # small 1D result
+        idx = np.nonzero(proj)[0]
+        lo, hi = int(idx.min()), int(idx.max()) + 1
+        bbox.append((max(0, lo - pad), hi + pad))
+    return bbox
+
+
+def load_mito_data(mitochondria_dir, nucleus_data_path):
+    nucleus_data = pd.read_csv(nucleus_data_path)
+    
+    ROIs = np.unique(['_'.join(ROI.split('.')[0].split('_')[:-1])
+            for ROI in os.listdir(mitochondria_dir)
+            if ROI.endswith('.csv')])
+    
+    mito_data_list = []
+    for ROI_name in ROIs:
+        mito_data = pd.read_csv(f'{mitochondria_dir}/{ROI_name}_properties.csv')
+        mito_data['ROI'] = ROI_name
+        mito_data_list.append(mito_data)
+
+    all_mito_data = pd.concat(mito_data_list)
+
+    # # Append nucleus properties to all_mito_data
+    all_mito_data = all_mito_data.merge(nucleus_data, suffixes=("", "_nucleus") ,on='ROI')
+    all_mito_data = all_mito_data.drop(['distance_to_current_mito'], axis=1, errors='ignore')
+
+
 ################################################################
 '''''''''''''''''
 Basic Geometric Functions
@@ -69,13 +103,14 @@ def build_nucleus_distance_map(ROI_name, ZARR_DIR, SPACING = np.array([10,10,50]
 
     return nucleus, dist
 
-def compute_nucleus_properties(nucleus_array, ROI_name, SPACING = np.array([10,10,50])):
-
+def compute_nucleus_properties(nucleus_array, ROI_name,
+                               SPACING = np.array([10,10,50]),
+                               offset=np.array([0, 0, 0])):
+    
     voxel_volume = np.prod(SPACING)
-
     prop = regionprops(nucleus_array)[0]
-
     centroid = centroid_from_binary(nucleus_array, SPACING=SPACING)
+    centroid = centroid + offset * SPACING  # shift back to global coords
 
     volume = prop.area * voxel_volume
 
@@ -84,14 +119,12 @@ def compute_nucleus_properties(nucleus_array, ROI_name, SPACING = np.array([10,1
         level=0.5,
         spacing=SPACING
     )
+    verts = verts + offset * SPACING  # shift mesh vertices too
 
     tri_verts = verts[faces]
-
     vec1 = tri_verts[:,1] - tri_verts[:,0]
     vec2 = tri_verts[:,2] - tri_verts[:,0]
-
     cross = np.cross(vec1, vec2)
-
     surface_area = np.linalg.norm(cross, axis=1).sum() / 2
 
     return {
