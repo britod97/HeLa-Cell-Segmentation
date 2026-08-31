@@ -7,7 +7,7 @@ Created on Fri Aug 28 13:30:06 2026
 
 import os
 from pathlib import Path
-workdir = Path(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
+workdir = Path(r"D:\GitHub Repos\HeLa-Cell-Segmentation\Code")
 os.chdir(workdir)
 
 import numpy as np
@@ -34,10 +34,10 @@ def export_legend(legend, filename="legend.pdf", expand=[-5,-5,5,5]):
 
 
 
-ZARR_DIR = Path(r"E:\HeLa\Data\CIL50051\Zarr")
+ZARR_DIR = Path(r"D:\GitHub Repos\HeLa_Cell_Data\CIL50051\Zarr")
 
 # Read Nucleus and Mitochondria data
-data_dir = Path(r'E:\HeLa\Data\CIL50051\GeneratedData')
+data_dir = Path(r'D:\GitHub Repos\HeLa_Cell_Data\CIL50051\GeneratedData')
 mitochondria_dir = Path(f'{data_dir}/mitochondria_props_isotropic')
 
 ROIs = np.unique(['_'.join(ROI.split('.')[0].split('_')[:-1])
@@ -74,7 +74,7 @@ angle_types = ['centroid_angle', 'surface_angle']
 for d_type in distance_types:
     for angle in angle_types:
         distances = all_mito_data['centroid_distance']
-        figure_dir = Path(f'E:\HeLa\Figures/ROSE_isotropic/{angle}/by_{d_type}')
+        figure_dir = Path(f'D:\GitHub Repos\HeLa_Cell_Data\CIL50051\Figures/ROSE_isotropic/{angle}/by_{d_type}')
         os.makedirs(figure_dir, exist_ok=True)
     
         P = [25, 50, 100]
@@ -104,8 +104,8 @@ for d_type in distance_types:
     
     
             ax.set_title(f'{angle} of mitos with {d_type} <= {round(p,2)}')
-            ax.set_yticks([0, 0.2, 0.4])
-            ax.set_ylim(0, 0.4)
+            # ax.set_yticks([0, 0.2, 0.4])
+            # ax.set_ylim(0, 0.4)
             ax.set_thetalim(0, np.pi)
             ax.set_xticks([0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi])
             ax.tick_params(axis='y', labelsize=36, pad=10)

@@ -7,7 +7,7 @@ Created on Fri Aug 28 14:48:02 2026
 
 import os
 from pathlib import Path
-workdir = Path(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
+workdir = Path(r"D:\GitHub Repos\HeLa-Cell-Segmentation\Code")
 os.chdir(workdir)
 
 import numpy as np
@@ -27,6 +27,8 @@ import hela_utils
 from scipy import stats
 from sklearn.covariance import EllipticEnvelope
 from sklearn.preprocessing import StandardScaler
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)  # don't wrap based on terminal width
 
 
 def compute_cell_summary(mito_df, nucleus_df):
@@ -104,7 +106,7 @@ def flag_multivariate_outliers(new_summary, old_summary, feature_cols, contamina
 
 if __name__ == "__main__":
     # New Data
-    new_data_dir = Path(r'E:\HeLa\Data\CIL50051\GeneratedData')
+    new_data_dir = Path(r'D:\GitHub Repos\HeLa_Cell_Data\CIL50051\GeneratedData')
     new_mitochondria_dir = Path(f'{new_data_dir}/mitochondria_props_isotropic')
     new_nucleus_data_path = Path(f'{new_data_dir}/nucleus_props_isotropic/nucleus_properties.csv')
     
@@ -112,7 +114,7 @@ if __name__ == "__main__":
     
     
     # Old data
-    old_data_dir = Path(r'E:\HeLa\Data\EMPIAR-10094\GeneratedData')
+    old_data_dir = Path(r'D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\GeneratedData')
     old_mitochondria_dir = Path(f'{old_data_dir}/mitochondria_props_isotropic')
     old_nucleus_data_path = Path(f'{old_data_dir}/nucleus_props_isotropic/nucleus_properties.csv')
     

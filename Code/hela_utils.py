@@ -144,9 +144,11 @@ Mitochondria Properties
 '''''''''''''''''
 
 # Collection 2
-def compute_labels(zarr_dir, ROI_name, chunk_size=(64,64,300), SPACING = np.array([10,10,50])):
-    mitochondria_path = (f'{zarr_dir}/{ROI_name}_Mitochondria.zarr')
-    cell_path = (f'{zarr_dir}/{ROI_name}_Cell.zarr')
+def compute_labels(mitochondria_path, cell_path,
+                   chunk_size=(64,64,300),
+                   SPACING = np.array([10,10,50])):
+    # mitochondria_path = (f'{zarr_dir}/{ROI_name}_Mitochondria.zarr')
+    # cell_path = (f'{zarr_dir}/{ROI_name}_Cell.zarr')
 
     mito_da = da.from_zarr(mitochondria_path, chunks=chunk_size).astype(np.int16)
     cell_da = da.from_zarr(cell_path, chunks=chunk_size).astype(np.int8)
