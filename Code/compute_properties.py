@@ -7,7 +7,7 @@ Created on Thu Aug 27 14:28:06 2026
 
 import os
 from pathlib import Path
-workdir = Path(r"D:\GitHub Repos\HeLa-Cell-Segmentation\Code")
+workdir = Path(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
 os.chdir(workdir)
 
 import numpy as np
@@ -17,12 +17,14 @@ import pandas as pd
 
 
 
-SPACING = np.array([3.6, 3.6, 60])
+# For CIL50051 downsampled versions, its voxels are 18x18x60 nm
+
+SPACING = np.array([18, 18, 60])
 chunk_size = (64,64,255)
 
-ZARR_DIR = Path(r"D:\GitHub Repos\HeLa_Cell_Data\CIL50051\Zarr")
-MITO_DIR = Path(r"D:\GitHub Repos\HeLa_Cell_Data\CIL50051\GeneratedData\mitochondria_props_isotropic")
-NUCLEUS_DIR = Path(r"D:\GitHub Repos\HeLa_Cell_Data\CIL50051\GeneratedData\nucleus_props_isotropic")
+ZARR_DIR = Path(r"E:\HeLa\Data\CIL50051\Zarr")
+MITO_DIR = Path(r"E:\HeLa\Data\CIL50051\GeneratedData\mitochondria_props_isotropic")
+NUCLEUS_DIR = Path(r"E:\HeLa\Data\CIL50051\GeneratedData\nucleus_props_isotropic")
 os.makedirs(MITO_DIR, exist_ok=True)
 os.makedirs(NUCLEUS_DIR, exist_ok=True)
 
