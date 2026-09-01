@@ -7,7 +7,7 @@ Created on Fri Aug 28 14:48:02 2026
 
 import os
 from pathlib import Path
-workdir = Path(r"D:\GitHub Repos\HeLa-Cell-Segmentation\Code")
+workdir = Path(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
 os.chdir(workdir)
 
 import numpy as np
@@ -59,6 +59,56 @@ def compute_cell_summary(mito_df, nucleus_df):
     return cell_summary
 
 def flag_feature_outliers(new_summary, old_summary, feature_cols=None, z_thresh=3, robust=True):
+    """
+    Flag cells in a new dataset whose per-feature values deviate strongly from
+    the distribution of the same features in an old (reference) dataset.
+
+    For each feature, a z-like score is computed:
+
+        z = (new_value - center) / spread
+
+    where `center` and `spread` are estimated from `old_summary` only:
+      - robust=True  (default): center = median, spread = MAD scaled to be
+        comparable to a standard deviation (`scipy.stats.median_abs_deviation`,
+        `scale='normal'`). Less sensitive to outliers/skew in the old
+        reference population than mean/std.
+      - robust=False: center = mean, spread = std (classic z-score).
+
+    A cell is flagged on a given feature if |z| > z_thresh. A cell is flagged
+    overall (`is_outlier_cell`) if it exceeds the threshold on at least one
+    feature. Features are evaluated independently (univariate) - this does
+    NOT account for correlations between features. Use
+    `flag_multivariate_outliers` for that.
+
+    Features where the old-data spread is zero or NaN (e.g. too few ROIs, or
+    a constant column) are silently skipped and excluded from flagging, since
+    z-scores would be undefined or infinite.
+
+    Parameters
+    ----------
+    new_summary : pd.DataFrame
+    old_summary : pd.DataFrame
+    feature_cols : list of str, optional
+    z_thresh : float, default 3
+        Absolute z-score threshold above which a feature is flagged.
+    robust : bool, default True
+        If True, use median/MAD (scaled) for center/spread. If False, use
+        mean/std.
+
+    Returns
+    -------
+    results : pd.DataFrame
+        One row per ROI in `new_summary`, with columns:
+          - 'ROI'
+          - '{col}_z' for each tested feature: the signed z-score
+          - 'n_flagged_features': count of features with |z| > z_thresh
+          - 'flagged_features': list of feature names that were flagged
+          - 'is_outlier_cell': True if n_flagged_features > 0
+    flags : pd.DataFrame
+        Boolean matrix (same index as `new_summary`), one column per tested
+        feature, True where that feature was flagged for that cell. Columns
+        with zero/NaN spread in `old_summary` are absent (not just False).
+    """
     if feature_cols is None:
         feature_cols = [c for c in new_summary.columns
                          if c != 'ROI' and pd.api.types.is_numeric_dtype(new_summary[c])
@@ -106,7 +156,7 @@ def flag_multivariate_outliers(new_summary, old_summary, feature_cols, contamina
 
 if __name__ == "__main__":
     # New Data
-    new_data_dir = Path(r'D:\GitHub Repos\HeLa_Cell_Data\CIL50051\GeneratedData')
+    new_data_dir = Path(r'E:\HeLa\Data\CIL50051\GeneratedData')
     new_mitochondria_dir = Path(f'{new_data_dir}/mitochondria_props_isotropic')
     new_nucleus_data_path = Path(f'{new_data_dir}/nucleus_props_isotropic/nucleus_properties.csv')
     
@@ -114,7 +164,7 @@ if __name__ == "__main__":
     
     
     # Old data
-    old_data_dir = Path(r'D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\GeneratedData')
+    old_data_dir = Path(r'E:\HeLa\Data\EMPIAR-10094\GeneratedData')
     old_mitochondria_dir = Path(f'{old_data_dir}/mitochondria_props_isotropic')
     old_nucleus_data_path = Path(f'{old_data_dir}/nucleus_props_isotropic/nucleus_properties.csv')
     

@@ -223,22 +223,27 @@ def compute_mitochondria_properties(labels, SPACING = np.array([10,10,50])):
 
         results.append({
             "label": prop.label,
-
+            
+            # Centroid of each mitochondria
             "centroid_x": centroid[0],
             "centroid_y": centroid[1],
             "centroid_z": centroid[2],
-
+            
+            # Volume and surface area of each mitochondria
             "volume": volume,
             "surface_area": surface_area,
-
+            
+            # Major axis in global coordinates
             "orientation_x": major0[0],
             "orientation_y": major0[1],
             "orientation_z": major0[2],
-
+            
+            # Minor axis in global coordinates
             "minor_axis_x": minor0[0],
             "minor_axis_y": minor0[1],
             "minor_axis_z": minor0[2],
-
+            
+            # Eigenvalues of the PCA fit to the shape of the mitochondria
             "eigvals": eigvals0
         })
 
