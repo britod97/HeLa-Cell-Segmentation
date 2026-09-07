@@ -142,11 +142,10 @@ bar_width = 1
 
 angle_types = ['centroid_angle', 'surface_angle']
 
-figure_dir = Path(f'D:/GitHub Repos/HeLa_Cell_Data/CIL50051/Figures/ROSE_isotropic/{angle}/by_cell')
-if not os.path.exists(figure_dir):
-    os.mkdir(figure_dir)
 
 for angle in angle_types:
+    figure_dir = Path(f'D:/GitHub Repos/HeLa_Cell_Data/CIL50051/Figures/ROSE_isotropic/{angle}/by_cell')
+    os.makedirs(figure_dir, exist_ok=True)
     for roi_name in ROIs:
         fig = plt.figure(figsize=(10,10))
         mito_data = all_mito_data.loc[all_mito_data['ROI'] == roi_name]
