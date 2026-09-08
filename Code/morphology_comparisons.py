@@ -7,7 +7,7 @@ Created on Fri Aug 28 14:48:02 2026
 
 import os
 from pathlib import Path
-workdir = Path(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
+workdir = Path(r"D:\GitHub Repos\HeLa-Cell-Segmentation\Code")
 os.chdir(workdir)
 
 import numpy as np
@@ -155,8 +155,10 @@ def flag_multivariate_outliers(new_summary, old_summary, feature_cols, contamina
 
 
 if __name__ == "__main__":
+    z_thresh = 2
+    
     # New Data
-    new_data_dir = Path(r'E:\HeLa\Data\CIL50051\GeneratedData')
+    new_data_dir = Path(r'D:\GitHub Repos\HeLa_Cell_Data\CIL50051\GeneratedData')
     new_mitochondria_dir = Path(f'{new_data_dir}/mitochondria_props_isotropic')
     new_nucleus_data_path = Path(f'{new_data_dir}/nucleus_props_isotropic/nucleus_properties.csv')
     
@@ -164,7 +166,7 @@ if __name__ == "__main__":
     
     
     # Old data
-    old_data_dir = Path(r'E:\HeLa\Data\EMPIAR-10094\GeneratedData')
+    old_data_dir = Path(r'D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\GeneratedData')
     old_mitochondria_dir = Path(f'{old_data_dir}/mitochondria_props_isotropic')
     old_nucleus_data_path = Path(f'{old_data_dir}/nucleus_props_isotropic/nucleus_properties.csv')
     
@@ -178,8 +180,12 @@ if __name__ == "__main__":
     feature_cols = [c for c in new_cell_summary.columns
                      if c != 'ROI' and pd.api.types.is_numeric_dtype(new_cell_summary[c])]
     
-    univariate, flags = flag_feature_outliers(new_cell_summary, old_cell_summary, feature_cols)
-    multivariate = flag_multivariate_outliers(new_cell_summary, old_cell_summary,
+    univariate, flags = flag_feature_outliers(new_cell_summary,
+                                              old_cell_summary,
+                                              feature_cols,
+                                              z_thresh=z_thresh)
+    multivariate = flag_multivariate_outliers(new_cell_summary,
+                                              old_cell_summary,
                                                 feature_cols=['mito_count', 'mito_volume_mean',
                                                                'mito_volume_fraction', 'nucleus_volume',
                                                                'nucleus_anisotropy'])
