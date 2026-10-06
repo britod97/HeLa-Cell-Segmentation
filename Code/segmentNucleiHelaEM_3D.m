@@ -131,8 +131,11 @@ end
 %[rows,cols,numSlices]                   = size(Hela_3D);
 %Hela_nuclei(rows,cols,numSlices)        = 0;
 %Hela_background(rows,cols,numSlices)    = 0;
-Hela_background = false(infoSlices.Height, infoSlices.Width, numSlices);
-Hela_nuclei = false(infoSlices.Height, infoSlices.Width, numSlices);
+% Hela_background = false(infoSlices.Height, infoSlices.Width, numSlices);
+% Hela_nuclei = false(infoSlices.Height, infoSlices.Width, numSlices);
+[rows, cols, numSlices] = size(Hela_3D);
+Hela_background = false(rows, cols, numSlices);
+Hela_nuclei     = false(rows, cols, numSlices);
 % Start with the central slice, this assumes the cell is centrally located,
 % this may not be the case and may need to be reconsidered
 

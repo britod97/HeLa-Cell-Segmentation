@@ -55,7 +55,7 @@ function mask = segmentManual(inputImage, outputFile)
 %       mask = segmentMitochondriaManual(myVolume, 'mito_mask.mat');
 
     if nargin < 2 || isempty(outputFile)
-        outputFile = 'mitochondria_mask.mat';
+        outputFile = 'membrane_mask.mat';
     end
     outputFile = resolveOutputFile(outputFile);
 
