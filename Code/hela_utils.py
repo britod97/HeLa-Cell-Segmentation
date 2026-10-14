@@ -20,13 +20,21 @@ from scipy.ndimage import distance_transform_edt
 import h5py
 import scipy.io
 
+
 def load_MAT_file(file_path, key):
     """Load a variable from a .mat file as a numpy array (MATLAB axis order)."""
     try:
-        with h5py.File(file_path, 'r') as f:    # MATLAB v7.3 (HDF5)
-            return f[key][:].T                  # h5py reverses axes, so undo it
+        with h5py.File(file_path, 'r') as f:        # MATLAB v7.3 (HDF5)
+            if key not in f:
+                raise KeyError(f"Key '{key}' not found. Available keys: {list(f.keys())}")
+            return f[key][:].T                      # h5py reverses axes, so undo it
     except OSError:
-        return scipy.io.loadmat(file_path)[key] # older MAT formats
+        mat = scipy.io.loadmat(file_path)           # older MAT formats
+        if key not in mat:
+            available = [k for k in mat if not k.startswith('__')]
+            raise KeyError(f"Key '{key}' not found. Available keys: {available}")
+        return mat[key]
+
 
 def dask_bbox(dask_arr, pad=2):
     """Find bounding box of nonzero voxels without materializing the full array."""
