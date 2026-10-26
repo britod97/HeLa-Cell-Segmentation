@@ -12,39 +12,47 @@ os.chdir(workdir)
 
 # import scipy.io 
 import hela_utils
-from scipy import ndimage
 import numpy as np
+import matplotlib.pyplot as plt
+import time
+import perturb_utils
+from tqdm import tqdm
+from scipy.io import savemat
 
-def scale_instance(labels, lid, s, spacing):
-    """Shape-preserving scaling of one instance about its centroid."""
-    m = labels == lid
-    com = np.array(ndimage.center_of_mass(m))
-    # affine_transform maps output->input coords; scale in voxel units
-    # (isotropic in physical space: the scale factor is the same per axis,
-    # so anisotropic spacing doesn't matter for pure scaling)
-    inv = np.eye(3) / s
-    offset = com - inv @ com
-    out = ndimage.affine_transform(m.astype(np.float32), inv, offset=offset, order=1) > 0.5
-    new = labels.copy()
-    new[m] = 0
-    new[out & ((labels == 0) | (labels == lid))] = lid   # don't overwrite neighbours
-    return new
+def ROI_name(mat_volume_filename):
+    return '_'.join(mat_volume_filename.split('_')[:-1])
 
-ROI = "Hela_ROI_07_30_7395_5114_161"
-mat_dir = Path(r"E:\HeLa\Data\EMPIAR-10094\Matlab")
+savedir = Path(r"E:\HeLa\Data\EMPIAR-10094\Perturbations/mitochondria_scaling")
+# os.makedirs(savedir, exist_ok=True)
 
-mitochondria = hela_utils.load_MAT_file(mat_dir/ (ROI+"_Mitochondria.mat"),
-                                        "mitochondria")
-cell = hela_utils.load_MAT_file(mat_dir/ (ROI+"_Cell.mat"),
-                                        "Hela_cell")
-nucleus = hela_utils.load_MAT_file(mat_dir/ (ROI+"_Nuclei.mat"),
-                                        "Hela_nuclei")
+# spacing = (10,10,50)
+spacing = (1,1,5)
 
 
-mitochondria_in_cell = mitochondria*cell
+basedir = Path(r"E:\HeLa\Data\EMPIAR-10094\Matlab")
+files = os.listdir(basedir)
 
-labels = np.unique(mitochondria_in_cell)
+ROIs = np.unique([ROI_name(filename) for filename in files if filename.endswith(".mat")])
 
-lid = 2277
-
-scale_instance(labels,lid,)
+for factor in [1.2, 0.8]:
+    outdir = savedir / f"{factor}"
+    os.makedirs(outdir, exist_ok=True)
+    
+    for ROI in tqdm(ROIs[:1]):
+        
+        mitochondria = hela_utils.load_MAT_file(basedir / (ROI+"_Mitochondria.mat"),
+                                            "mitochondria")
+        print("Loaded Mito")
+        cell = hela_utils.load_MAT_file(basedir/ (ROI+"_Cell.mat"),
+                                                "Hela_cell")
+        print("Loaded Cell")
+        nucleus = hela_utils.load_MAT_file(basedir/ (ROI+"_Nuclei.mat"),
+                                                "Hela_nuclei")
+        print("Loaded Nuc")
+        scaled = perturb_utils.scale_mitochondria(mitochondria, cell, nucleus, factor)
+    
+        savefile = f"{ROI[:11]}_Mitochondria_Scaled_{factor}.mat"
+        savemat(outdir/savefile, {"mitochondria":scaled})
+    
+    
+    

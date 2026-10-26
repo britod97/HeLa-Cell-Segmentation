@@ -72,6 +72,15 @@ def load_mito_data(mitochondria_dir, nucleus_data_path):
     return all_mito_data, nucleus_data
 
 
+def touches_border(labels):
+    edge = np.zeros(labels.shape, bool)
+    for ax in range(3):
+        edge[(slice(None),) * ax + (0,)] = True
+        edge[(slice(None),) * ax + (-1,)] = True
+    return set(np.unique(labels[edge])) - {0}
+
+
+
 ################################################################
 '''''''''''''''''
 Basic Geometric Functions
