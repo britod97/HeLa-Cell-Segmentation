@@ -38,7 +38,7 @@ for factor in [1.2, 0.8]:
     outdir = savedir / f"{factor}"
     os.makedirs(outdir, exist_ok=True)
     
-    for ROI in tqdm(ROIs[:1]):
+    for ROI in tqdm(ROIs[1:]):
         
         mitochondria = hela_utils.load_MAT_file(basedir / (ROI+"_Mitochondria.mat"),
                                             "mitochondria")
