@@ -2,8 +2,8 @@
 clear all
 close all
 
-baseDir             = 'D:\Acad\Crick\Hela8000\';
-outputDir           = 'D:\Acad\Crick\Hela8000_tiff\';
+baseDir             = 'E:\HeLa\Data\EMPIAR-10094\dm4\';
+outputDir           = 'E:\HeLa\Data\EMPIAR-10094\tiffs\';
 
 
 
@@ -14,9 +14,10 @@ numImages           = size(dir0,1);
 %%
 %filtG= gaussF(3,3,1);
 
-for k=1:numImages
+for k=1:1
     disp(k)
-    [c,d]=dmread(dir0(k).name);
+    filename = fullfile(baseDir, dir0(k).name);
+    [c,d] = dmread(filename);
 
     % To convert from uint32 to uint8 and keep the same range of values than the cropped ROIs
     d3=double(d); 
