@@ -31,7 +31,8 @@ function cropAllROIs(tiffdir, outroot)
     imgH = info(1).Height;
 
     % ---- Process each ROI ----
-    for k = 1:numel(roiNames)
+    % for k = 1:numel(roiNames)
+    for k = 1:1
         roi = roiNames{k};
 
         % Parse: ...<x>_<y>_<z> -> last three numeric tokens in the name
@@ -40,8 +41,8 @@ function cropAllROIs(tiffdir, outroot)
             warning('Could not parse coordinates from "%s", skipping.', roi);
             continue
         end
-        xc = str2double(tok{1});   % middle of x
-        yc = str2double(tok{2});   % middle of y
+        yc = str2double(tok{1});   % first number in the name is actually y
+        xc = str2double(tok{2});   % second number is actually x
         zc = str2double(tok{3});   % middle slice
 
         % Clamped start positions (1-based)
