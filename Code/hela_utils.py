@@ -547,3 +547,33 @@ def apply_gaussian_filter_dir(input_dir, output_dir, shape=(3,3), s=1):
         Image.fromarray(filtered).save(output_dir / img_path.name)
     
     print("Done!")
+    
+    
+# def add_noise(img, level, seed=0, peak=None, z=None):
+#     """
+#     img: raw volume (any dtype). level: Gaussian sigma as a fraction of the
+#     image's robust std (0 = null control).
+#     peak: optional photon budget for shot noise (lower = noisier).
+#     """
+#     x = img.astype(np.float32)
+#     lo, hi = np.percentile(x, [0.5, 99.5])
+#     x = np.clip((x - lo) / (hi - lo), 0, 1)           # work in [0, 1]
+
+#     rng = np.random.default_rng(seed)
+#     if peak is not None:                               # shot noise
+#         x = rng.poisson(x * peak).astype(np.float32) / peak
+#     if z is None:
+#         z = rng.standard_normal(x.shape).astype(np.float32)   # fixed field
+#     x = x + level * x.std() * z                        # scaled, nested noise
+
+#     x = np.clip(x, 0, 1) * (hi - lo) + lo
+#     return x.astype(img.dtype) if np.issubdtype(img.dtype, np.integer) is False \
+#         else np.clip(x, np.iinfo(img.dtype).min, np.iinfo(img.dtype).max).astype(img.dtype)
+
+def add_noise(img, level, z, sd):
+    """sd: std of the clean ROI (raw units), computed once per ROI."""
+    x = img.astype(np.float32) + level * sd * z
+    if np.issubdtype(img.dtype, np.integer):
+        info = np.iinfo(img.dtype)
+        x = np.clip(np.rint(x), info.min, info.max)
+    return x.astype(img.dtype)
