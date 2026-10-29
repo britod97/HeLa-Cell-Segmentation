@@ -19,6 +19,10 @@ from tqdm import tqdm
 from scipy.ndimage import distance_transform_edt
 import h5py
 import scipy.io
+# import cv2
+from PIL import Image
+from scipy.ndimage import gaussian_filter
+from pathlib import Path
 
 
 def load_MAT_file(file_path, key):
@@ -510,3 +514,36 @@ def compute_mito_cloud_properties(df, nucleus_row):
         "mitocloud_v3_y": v3[1],
         "mitocloud_v3_z": v3[2]
     }
+
+
+
+def apply_gaussian_filter_dir(input_dir, output_dir, shape=(3,3), s=1):
+    # Input and output directories
+    input_dir = Path(input_dir)
+    output_dir = Path(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Supported image extensions
+    extensions = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
+    
+    for img_path in input_dir.iterdir():
+        if img_path.suffix.lower() not in extensions:
+            continue
+    
+        # Load image
+        img = np.array(Image.open(img_path))
+    
+        # Apply Gaussian filter (sigma=1)
+        # Apply only to spatial dimensions, not colour channels
+        if img.ndim == 3:  # RGB/RGBA image
+            filtered = gaussian_filter(img, sigma=(1, 1, 0), truncate=1)
+        else:  # grayscale image
+            filtered = gaussian_filter(img, sigma=1, truncate=1)
+    
+        # Convert back to valid image type
+        filtered = np.clip(filtered, 0, 255).astype(np.uint8)
+    
+        # Save result
+        Image.fromarray(filtered).save(output_dir / img_path.name)
+    
+    print("Done!")
