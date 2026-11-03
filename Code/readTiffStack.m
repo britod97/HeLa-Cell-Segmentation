@@ -1,5 +1,4 @@
-fpath = ['D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094/NewMitochondriaPredictions/' ...
-    '    Tiffs/ROI_01_30_876_1665_81_z0001-mito-prediction.tif']
+fpath = ['D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\NewMitochondriaPredictions\ROI_08_NOISY_1.5-mito-prediction.tif']
 
 info = imfinfo(fpath);
 numImages = numel(info);
@@ -10,6 +9,5 @@ for k = 1:numImages
     mitochondria(:,:,k) = imread(fpath, k);
 end
 
-save("D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\NewMitochondriaPredictions\" + ...
-    "    Matlab/ROI_01_30_876_1665_81_" + ...
+save("D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\NewMitochondriaPredictions\Matlab\Noisy\ROI_08_NOISY_1.5" + ...
     "Mitochondria.mat", "mitochondria", '-v7.3');
