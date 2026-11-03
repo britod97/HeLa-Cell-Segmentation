@@ -18,6 +18,15 @@ from PIL import Image
 from tifffile import imwrite
 import matplotlib.pyplot as plt
 
+
+def add_noise(img, level, z, sd):
+    """sd: std of the clean ROI (raw units), computed once per ROI."""
+    x = img.astype(np.float32) + level * sd * z
+    if np.issubdtype(img.dtype, np.integer):
+        info = np.iinfo(img.dtype)
+        x = np.clip(np.rint(x), info.min, info.max)
+    return x.astype(img.dtype)
+
 root_dir = Path(r"D:\GitHub Repos\HeLa_Cell_Data\PNGs")
 
 ''' SMOOTH '''
@@ -54,7 +63,7 @@ for ROI_name in tqdm(os.listdir(root_dir)[16:]):
         z = rng.standard_normal(img.shape).astype(np.float32)
 
         for lvl in levels:                            # same z across levels -> nested noise
-            out = hela_utils.add_noise(img, lvl, z, sd)
+            out = add_noise(img, lvl, z, sd)
             imwrite(noisy_dir / ROI_name / str(lvl) / file, out)   # keeps TIFF format
 
 # Progressive series: reuse the same z so each level is the previous one plus more noise

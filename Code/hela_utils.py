@@ -570,10 +570,10 @@ def apply_gaussian_filter_dir(input_dir, output_dir, shape=(3,3), s=1):
 #     return x.astype(img.dtype) if np.issubdtype(img.dtype, np.integer) is False \
 #         else np.clip(x, np.iinfo(img.dtype).min, np.iinfo(img.dtype).max).astype(img.dtype)
 
-def add_noise(img, level, z, sd):
-    """sd: std of the clean ROI (raw units), computed once per ROI."""
-    x = img.astype(np.float32) + level * sd * z
-    if np.issubdtype(img.dtype, np.integer):
-        info = np.iinfo(img.dtype)
-        x = np.clip(np.rint(x), info.min, info.max)
-    return x.astype(img.dtype)
+# def add_noise(img, level, z, sd):
+#     """sd: std of the clean ROI (raw units), computed once per ROI."""
+#     x = img.astype(np.float32) + level * sd * z
+#     if np.issubdtype(img.dtype, np.integer):
+#         info = np.iinfo(img.dtype)
+#         x = np.clip(np.rint(x), info.min, info.max)
+#     return x.astype(img.dtype)

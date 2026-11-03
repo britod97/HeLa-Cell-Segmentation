@@ -12,7 +12,7 @@ from tqdm import tqdm
 workdir = Path(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
 os.chdir(workdir)
 
-rootdir = Path(r"E:\HeLa\Data\EMPIAR-10094\Cropped")
+rootdir = Path(r"E:\HeLa\Data\EMPIAR-10094\CroppedFiltered")
 
 for subdir in tqdm(os.listdir(rootdir)):
     for file in os.listdir(rootdir/subdir):
