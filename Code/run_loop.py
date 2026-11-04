@@ -9,6 +9,7 @@ from skimage import io
 from empanada.config_loaders import read_yaml
 from empanada_napari.inference import Engine3d, stack_postprocessing
 from empanada_napari.utils import get_configs
+import tifffile
 
 # images_dir = Path(r"E:\HeLa\Data\EMPIAR-10094\Tiffs")
 # predictions_dir = Path(r"E:\HeLa\Data\EMPIAR-10094\Predictions")
@@ -87,7 +88,7 @@ def main():
             # Make out_dir
             out_dir = noisy_predictions_dir / ROI #/ lvl_str
             out_dir.mkdir(parents=True, exist_ok=True)
-            out = out_dir / f"ROI_{ROI[9:11]}_{lvl_str}.npy"
+            out = out_dir / f"ROI_{ROI[9:11]}_{lvl_str}.tif"
 
             
             # step 1: stack inference on xy (what the widget's stack_inference does)
@@ -106,7 +107,8 @@ def main():
             
             # Save output
             for masks, class_name, instances in gen:
-                np.save(out, np.asarray(masks).astype(np.uint32))
+                tifffile.imwrite(out, masks)
+                # np.save(out, np.asarray(masks).astype(np.uint32))
                 # print(f"saved {out.name}: {len(instances)} instances")
 
 
