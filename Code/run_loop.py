@@ -85,7 +85,7 @@ def main():
             print(f"{ROI}: volume {vol.shape}, {vol.dtype}")
             
             # Make out_dir
-            out_dir = noisy_predictions_dir / ROI / lvl_str
+            out_dir = noisy_predictions_dir / ROI #/ lvl_str
             out_dir.mkdir(parents=True, exist_ok=True)
             out = out_dir / f"ROI_{ROI[9:11]}_{lvl_str}.npy"
 
