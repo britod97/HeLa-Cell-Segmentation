@@ -8,7 +8,7 @@ Created on Tue Nov  3 17:11:28 2026
 import os
 from pathlib import Path
 # workdir = Path(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
-workdir = Path(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
+workdir = Path(r"D:\GitHub Repos\HeLa-Cell-Segmentation\Code")
 os.chdir(workdir)
 
 import hela_utils
@@ -27,11 +27,11 @@ def add_noise(img, level, z, sd):
         x = np.clip(np.rint(x), info.min, info.max)
     return x.astype(img.dtype)
 
-root_dir = Path(r"E:\HeLa\Data\EMPIAR-10094\Tiffs")
+root_dir = Path(r"D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\PNGs")
     
 
 ''' NOISE '''
-noisy_dir = Path(r"E:\HeLa\Data\EMPIAR-10094\Noisy\Tiffs")
+noisy_dir = Path(r"D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\Noisy\Tiffs")
 
 
 # levels = [0, 0.25, 0.5]
@@ -54,12 +54,13 @@ for ROI_name in tqdm(ROIs):
         os.makedirs(noisy_dir / ROI_name / str(f"{round(lvl*100):03d}"), exist_ok=True)
 
     for i, file in enumerate(files):
+        # print(file)
         img = np.array(Image.open(root_dir / ROI_name / file))
         rng = np.random.default_rng([0, i])           # different field per slice
         z = rng.standard_normal(img.shape).astype(np.float32)
 
         for lvl in levels:                            # same z across levels -> nested noise
             out = add_noise(img, lvl, z, sd)
-            imwrite(noisy_dir / ROI_name / str(f"{round(lvl*100):03d}") / file, out)   # keeps TIFF format
+            imwrite(noisy_dir / ROI_name / str(f"{round(lvl*100):03d}") / f"{file[:-4]}.tif", out)   # outputs as .tif
 
 # Progressive series: reuse the same z so each level is the previous one plus more noise
