@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from pathlib import Path
-workdir = Path(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
+workdir = Path(r"D:\GitHub Repos\HeLa-Cell-Segmentation\Code")
 os.chdir(workdir)
 
 import numpy as np
@@ -14,8 +14,8 @@ import tifffile
 # images_dir = Path(r"E:\HeLa\Data\EMPIAR-10094\Tiffs")
 # predictions_dir = Path(r"E:\HeLa\Data\EMPIAR-10094\Predictions")
 
-noisy_dir = Path(r"E:\HeLa\Data\EMPIAR-10094\Noisy\Tiffs")
-noisy_predictions_dir = Path(r"E:\HeLa\Data\EMPIAR-10094\Noisy\Predictions")
+noisy_dir = Path(r"D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\Noisy\Tiffs")
+noisy_predictions_dir = Path(r"D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\Noisy\Predictions")
 
 LABEL_DIVISOR = 1000000          # "Max objects per class in 3D"
 MIN_SIZE, MIN_EXTENT = 200, 5
@@ -59,14 +59,14 @@ def main():
     
     # ROIs = os.listdir(images_dir)
     
-    noise_levels = [0, 0.25, 0.5, 1.0, 1.25, 1.5]
+    noise_levels = [0,0.25, 0.5, 1.0, 1.25, 1.5]
     # noise_levels = [0, 1.5]
     # noisy_ROIs = sorted(p.name for p in noisy_dir.iterdir() if p.is_dir())
     noisy_ROIs = [
-        # 'Hela_ROI_07_30_7395_5114_161',
-        'Hela_ROI_08_30_6001_6460_221',
-        # 'Hela_ROI_09_30_1859_6893_201',
-        'Hela_ROI_10_30_1965_1378_181',
+        'Hela_ROI_07_30_7395_5114_161',
+        # 'Hela_ROI_08_30_6001_6460_221',
+        'Hela_ROI_09_30_1859_6893_201',
+        # 'Hela_ROI_10_30_1965_1378_181',
         # 'Hela_ROI_13_30_2685_3607_221',
         # 'Hela_ROI_26_30_3322_2960_401'
     ]
