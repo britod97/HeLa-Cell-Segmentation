@@ -34,8 +34,8 @@ root_dir = Path(r"D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\PNGs")
 noisy_dir = Path(r"D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\Noisy\Tiffs")
 
 
-# levels = [0, 0.25, 0.5]
-levels = [1.0, 1.25, 1.5, 1.75, 2.0]
+levels = [0, 0.25, 0.5]
+# levels = [1.0, 1.25, 1.5, 1.75, 2.0]
 
 
 ROIs = os.listdir(root_dir)
