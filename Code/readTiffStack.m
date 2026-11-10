@@ -1,6 +1,6 @@
 % Input and output directories
-inputDir = 'E:\HeLa\Data\EMPIAR-10094\Noisy\Predictions\Hela_ROI_08_30_6001_6460_221';
-outputDir = 'E:\HeLa\Data\EMPIAR-10094\Noisy\Matlab\Hela_ROI_08_30_6001_6460_221';
+inputDir = 'D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\Noisy\Predictions\Hela_ROI_09_30_1859_6893_201';
+outputDir = 'D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\Noisy\Matlab\Hela_ROI_09_30_1859_6893_201';
 
 % Create output directory if it doesn't exist
 if ~exist(outputDir, 'dir')
