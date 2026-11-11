@@ -1,4 +1,4 @@
-function [Hela_nuclei,Hela_background] = segmentCIL50051NucleiHelaEM_3D(baseDir,centralSlice,cannyStdValue)
+function [Hela_nuclei,Hela_background] = segmentNucleiHelaEM_3D_modified(baseDir,centralSlice,cannyStdValue)
 %function nucleiHela = segmentNucleiHelaEM_3D(baseDir,previousSegmentation,cannyStdValue)
 % This is the volumentric option of segmentNucleiHelaEM, it takes a stack
 % of images and process them all
