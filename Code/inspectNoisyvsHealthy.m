@@ -8,10 +8,12 @@ healthy_nuclei = S2.Hela_nuclei;
 healthy_bg = S2.Hela_background;
 healthy_cell = load("D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\Noisy\Matlab\Hela_ROI_07_30_7395_5114_161\ROI_07_000_Cell.mat");
 
-slice=150;
+slice=100;
 
-figure
-imshow(healthy_nuclei(:,:,slice))
-hold on
+figure;
+imshow(healthy_nuclei(:,:,slice));
+title('Healthy');
 
-imshow(noisy_nuclei(:,:,slice))
+figure;
+imshow(noisy_nuclei(:,:,slice));
+title('Noisy');
