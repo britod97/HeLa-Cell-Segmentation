@@ -63,9 +63,9 @@ def main():
     # noise_levels = [0, 1.5]
     # noisy_ROIs = sorted(p.name for p in noisy_dir.iterdir() if p.is_dir())
     noisy_ROIs = [
-        'Hela_ROI_07_30_7395_5114_161',
-        # 'Hela_ROI_08_30_6001_6460_221',
-        'Hela_ROI_09_30_1859_6893_201',
+        # 'Hela_ROI_07_30_7395_5114_161',
+        'Hela_ROI_08_30_6001_6460_221',
+        # 'Hela_ROI_09_30_1859_6893_201',
         # 'Hela_ROI_10_30_1965_1378_181',
         # 'Hela_ROI_13_30_2685_3607_221',
         # 'Hela_ROI_26_30_3322_2960_401'
