@@ -28,14 +28,14 @@ matlab_dir  = Path(r"D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\Noisy\Matlab")
 LABEL_DIVISOR = 1000000
 MIN_SIZE, MIN_EXTENT = 200, 5
 CHUNK = (256, 256, 256)
-# NOISE_LEVELS = [0, 0.25, 0.5, 1.0, 1.25, 1.5]
-NOISE_LEVELS = [0.5]
+NOISE_LEVELS = [0, 0.25, 0.5, 1.0, 1.25, 1.5]
+# NOISE_LEVELS = [0]
 
 # 1. Choose the ROIs (edit here, or pass them on the command line)
 ROIS = [
     # 'Hela_ROI_07_30_7395_5114_161',
-    'Hela_ROI_08_30_6001_6460_221',
-    # 'Hela_ROI_09_30_1859_6893_201',
+    # 'Hela_ROI_08_30_6001_6460_221',
+    'Hela_ROI_09_30_1859_6893_201',
     # 'Hela_ROI_10_30_1965_1378_181',
     # 'Hela_ROI_13_30_2685_3607_221',
     # 'Hela_ROI_26_30_3322_2960_401'

@@ -23,6 +23,11 @@ import scipy.io
 from PIL import Image
 from scipy.ndimage import gaussian_filter
 from pathlib import Path
+from scipy.ndimage import binary_erosion
+from scipy.spatial import cKDTree
+
+class SegmentationFailed(Exception):
+    """Raised when a ROI's segmentation is empty or too sparse to analyse."""
 
 
 def load_MAT_file(file_path, key):
@@ -227,7 +232,10 @@ def compute_mitochondria_properties(labels, SPACING = np.array([10,10,50])):
 
         cropped = labels[minx:maxx,miny:maxy,minz:maxz] == prop.label
 
-        major0, _, minor0, eigvals0 = major_axis_from_binary(cropped, SPACING=SPACING)
+        try:
+            major0, _, minor0, eigvals0 = major_axis_from_binary(cropped, SPACING=SPACING)
+        except ValueError:      # largest fragment too small for a 3-component PCA
+            continue
 
         volume = prop.area * voxel_volume
 
@@ -385,7 +393,9 @@ def compute_closest_point_on_nucleus(mito_centroid, nucleus_centroid, nucleus_da
     cropped = nucleus_da[min_x:max_x, min_y:max_y, min_z:max_z].compute()
 
     coords = np.argwhere(cropped)
-
+    
+    # Small cropped region around the mitochondria and nucleus centroids
+    # contains no nucleus pixels.
     if coords.shape[0] == 0:
         print('fallback')
         nucleus = nucleus_da.compute()
@@ -403,29 +413,86 @@ def compute_closest_point_on_nucleus(mito_centroid, nucleus_centroid, nucleus_da
     return coords_phys[idx], distances[idx]
 
 
+# def append_angle_relative_to_nucleus_surface(df, nucleus_df, ROI_name, ZARR_DIR,
+#                                              chunk_size=(64,64,300), SPACING=[10,10,50]):
+#     row = nucleus_df[nucleus_df["ROI"] == ROI_name].iloc[0]
+
+#     nucleus_centroid = np.array([
+#         row["centroid_x"],
+#         row["centroid_y"],
+#         row["centroid_z"]
+#     ])
+#     nucleus_da = da.from_zarr(f'{ZARR_DIR}/{ROI_name}_Nuclei.zarr', chunks=(64,64,300)).astype(np.int8)
+
+#     L = len(df)
+#     for idx, row in tqdm(df.iterrows(), total=L):
+#         mitochondria_centroid = np.array([row['centroid_x'], row['centroid_y'], row['centroid_z']])
+#         P, d = compute_closest_point_on_nucleus(mitochondria_centroid,
+#                                                 nucleus_centroid, nucleus_da,
+#                                                 SPACING=SPACING)
+#         v1 = np.array([mitochondria_centroid[0] - P[0], mitochondria_centroid[1] - P[1], mitochondria_centroid[2] - P[2]])
+#         v2 = np.array([row['orientation_x'], row['orientation_y'], row['orientation_z']])
+#         angle = compute_angle_between_vectors(v1, v2)
+#         df.at[idx, 'surface_angle'] = angle
+#         df.at[idx, 'surface_distance'] = d
+
+#     return df
+
+def build_nucleus_surface_tree(nucleus_path, SPACING=np.array([10, 10, 50])):
+    """Return (KD-tree of nucleus surface in physical units, cropped mask, offset)
+    or None if the nucleus mask is empty."""
+    nuc_lazy = da.from_zarr(nucleus_path)
+    if not bool((nuc_lazy > 0).any().compute()):
+        return None
+
+    bbox = dask_bbox(nuc_lazy, pad=2)
+    slices = tuple(slice(lo, hi) for lo, hi in bbox)
+    offset = np.array([s.start for s in slices])
+
+    nuc = nuc_lazy[slices].compute() > 0
+    surface = nuc & ~binary_erosion(nuc)          # 1-voxel shell
+    coords_phys = (np.argwhere(surface) + offset) * np.asarray(SPACING)
+
+    return cKDTree(coords_phys), nuc, offset
+
+
 def append_angle_relative_to_nucleus_surface(df, nucleus_df, ROI_name, ZARR_DIR,
-                                             chunk_size=(64,64,300), SPACING=[10,10,50]):
-    row = nucleus_df[nucleus_df["ROI"] == ROI_name].iloc[0]
+                                             chunk_size=None, SPACING=np.array([10, 10, 50])):
+    SPACING = np.asarray(SPACING)
+    df["surface_angle"] = np.nan
+    df["surface_distance"] = np.nan
 
-    nucleus_centroid = np.array([
-        row["centroid_x"],
-        row["centroid_y"],
-        row["centroid_z"]
-    ])
-    nucleus_da = da.from_zarr(f'{ZARR_DIR}/{ROI_name}_Nuclei.zarr', chunks=(64,64,300)).astype(np.int8)
+    if len(df) == 0:
+        return df
 
-    L = len(df)
-    for idx, row in tqdm(df.iterrows(), total=L):
-        mitochondria_centroid = np.array([row['centroid_x'], row['centroid_y'], row['centroid_z']])
-        P, d = compute_closest_point_on_nucleus(mitochondria_centroid,
-                                                nucleus_centroid, nucleus_da,
-                                                SPACING=SPACING)
-        v1 = np.array([mitochondria_centroid[0] - P[0], mitochondria_centroid[1] - P[1], mitochondria_centroid[2] - P[2]])
-        v2 = np.array([row['orientation_x'], row['orientation_y'], row['orientation_z']])
-        angle = compute_angle_between_vectors(v1, v2)
-        df.at[idx, 'surface_angle'] = angle
-        df.at[idx, 'surface_distance'] = d
+    built = build_nucleus_surface_tree(f"{ZARR_DIR}/{ROI_name}_Nuclei.zarr", SPACING)
+    if built is None:
+        print(f"{ROI_name}: empty nucleus mask, surface features set to NaN")
+        return df
+    tree, nuc, offset = built
 
+    centroids = df[["centroid_x", "centroid_y", "centroid_z"]].to_numpy()
+    orient = df[["orientation_x", "orientation_y", "orientation_z"]].to_numpy()
+
+    # Nearest surface point for every mito at once
+    d, nn = tree.query(centroids)
+    P = tree.data[nn]
+
+    # Centroids lying inside the nucleus -> distance 0 (as in the original)
+    vox = np.rint(centroids / SPACING).astype(int) - offset
+    in_bounds = np.all((vox >= 0) & (vox < nuc.shape), axis=1)
+    inside = np.zeros(len(df), bool)
+    inside[in_bounds] = nuc[tuple(vox[in_bounds].T)]
+    d[inside] = 0.0
+    P[inside] = centroids[inside]
+
+    v1 = centroids - P
+    angle = compute_angle_between_vectors(v1, orient)
+    angle = np.atleast_1d(angle)
+    angle[inside] = np.nan          # direction undefined when the vector is zero
+
+    df["surface_distance"] = d
+    df["surface_angle"] = angle
     return df
 
 def append_PCA_distribution(df, nucleus_df, ROI_name):

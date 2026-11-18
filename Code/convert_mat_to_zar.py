@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 from pathlib import Path
-os.chdir(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
+# os.chdir(r"E:\HeLa\HeLa-Cell-Segmentation\Code")
+os.chdir(r"D:\GitHub Repos\HeLa-Cell-Segmentation")
 
 import scipy.io
 import numpy as np
@@ -11,10 +12,11 @@ import zarr
 from numcodecs import Blosc
 
 # Location of .mat files
-matlab_folder = Path(r"E:\HeLa\Data\EMPIAR-10094\Noisy\Matlab\Hela_ROI_08_30_6001_6460_221")
+# matlab_folder = Path(r"E:\HeLa\Data\EMPIAR-10094\Noisy\Matlab\Hela_ROI_08_30_6001_6460_221")
+matlab_folder = Path(r"D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\Noisy\Matlab\Hela_ROI_08_30_6001_6460_221")
 
 # Location to place .zarr files
-zarr_folder = Path(r"E:\HeLa\Data\EMPIAR-10094\Noisy\Zarr")
+zarr_folder = Path(r"D:\GitHub Repos\HeLa_Cell_Data\EMPIAR-10094\Noisy\Zarr")
 zarr_folder.mkdir(parents=True, exist_ok=True)
 
 compressor = Blosc(cname='zstd', clevel=7, shuffle=Blosc.BITSHUFFLE)
@@ -55,7 +57,7 @@ for mat_file in tqdm(sorted(os.listdir(matlab_folder))):
         continue
 
     stem = Path(mat_file).stem
-    noise = stem.split('_')[-1]
+    noise = stem.split('_')[-2]
     if noise not in VALID_NOISE:
         print(f"Skipping {mat_file}: unexpected noise suffix '{noise}'")
         continue
